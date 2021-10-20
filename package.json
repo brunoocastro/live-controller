@@ -21,6 +21,7 @@
   "dependencies": {
     "dotenv": "^10.0.0",
     "node-yeelight-wifi": "^0.1.4",
-    "nodemon": "^2.0.14"
+    "nodemon": "^2.0.14",
+    "tmi.js": "^1.8.5"
   }
 }
