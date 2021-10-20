@@ -1,0 +1,26 @@
+{
+  "name": "live-controller",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "nodemon index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brunoocastro/live-controller.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/brunoocastro/live-controller/issues"
+  },
+  "homepage": "https://github.com/brunoocastro/live-controller#readme",
+  "dependencies": {
+    "dotenv": "^10.0.0",
+    "node-yeelight-wifi": "^0.1.4",
+    "nodemon": "^2.0.14"
+  }
+}
