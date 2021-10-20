@@ -6,7 +6,7 @@ let lamp
 lookup.on("detected", async (light) => {
   lamp = light;
   console.log(
-    "Lampada Yeelight detectada! [ID] " + light.id + " [Name] " + light.name
+    `-----Lampada Yeelight detectada!-----\n[ID]: ${light.id} | [Name]: ${light.name}\n`
   );
 });
 

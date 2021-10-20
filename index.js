@@ -6,9 +6,6 @@ config();
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
-await sleep(5000);
-
-const lamp = getLight();
 
 // Register our event handlers (defined below)
 client.on("message", onMessageHandler);
@@ -16,36 +13,21 @@ client.on("connected", onConnectedHandler);
 
 // Connect to Twitch:
 await client.connect();
+await sleep(3000);
+const lamp = getLight();
+lamp.setBright(100);
 
-// Called every time a message comes in
-function onMessageHandler(target, context, msg, self) {
-  if (self) {
-    return;
-  } // Ignore messages from the bot
+function isCommand(message) {
+  const nada = "";
+  if (message[0] !== "!") return { nada, nada };
 
-  // Remove whitespace from chat message
-  const commandName = msg.trim();
+  const texts = message.split(" ");
 
-  // If the command is known, let's execute it
-  if (commandName === "!dice") {
-    const num = rollDice();
-    client.say(target, `You rolled a ${num}`);
-    console.log(`* Executed ${commandName} command`);
-  } else if (commandName === "!blue") {
-    setLampBlue()
-  } else if (commandName === "!green") {
-    setLampGreen()
-  } else if (commandName === "!red") {
-    setLampRed()
-  } else {
-    console.log(`* Unknown command ${commandName}`);
-  }
-}
+  const command = texts[0].substring(1);
 
-// Function called when the "dice" command is issued
-function rollDice() {
-  const sides = 6;
-  return Math.floor(Math.random() * sides) + 1;
+  const attributes = texts.slice(1, texts.length);
+
+  return { command, attributes };
 }
 
 // Called every time the bot connects to Twitch chat
@@ -53,45 +35,95 @@ function onConnectedHandler(addr, port) {
   console.log(`* Connected to ${addr}:${port}`);
 }
 
-async function setLampBlue() {
+async function setLampBlue(commandData) {
   await lamp.setRGB([0, 0, 255]);
+  client.say(
+    commandData.target,
+    `${commandData.username} setou a cor para AZUL!`
+  );
 }
-async function setLampRed() {
+async function setLampRed(commandData) {
   await lamp.setRGB([255, 0, 0]);
+  client.say(
+    commandData.target,
+    `${commandData.username} setou a cor para VERMELHO!`
+  );
 }
-async function setLampGreen() {
+async function setLampGreen(commandData) {
   await lamp.setRGB([0, 255, 0]);
+  client.say(
+    commandData.target,
+    `${commandData.username} setou a cor para VERDE!`
+  );
+}
+async function setRGBColor(commandData, r, g, b) {
+  const color = [Number(r), Number(g), Number(b)];
+  await lamp.setRGB(color);
+  client.say(
+    commandData.target,
+    `${commandData.username} setou a cor para o RGB [${color}]`
+  );
+}
+async function flashEffect(commandData) {
+  const initialRGBColor = await lamp.rgb;
+  const initialBright = (await lamp.bright) | 100;
+
+  client.say(commandData.target, `${commandData.username} bangou o time!`);
+
+  await lamp.setRGB([255, 255, 255], 500);
+  await lamp.setPower(false);
+  await sleep(500);
+  await lamp.setPower(true);
+  await sleep(200);
+  await lamp.setBright(100, 500);
+  await sleep(500);
+  await lamp.setBright(50, 500);
+  await sleep(500);
+  await lamp.setBright(0, 500);
+  await sleep(500);
+  await lamp.setBright(100);
+  await sleep(2000);
+
+  await lamp.setBright(initialBright);
+  await lamp.setRGB(initialRGBColor);
 }
 
-// if (lamp) {
-//   // console.log("light:", light);
-//   await lamp.setRGB([50, 130, 201]);
-//   const actualRGB = await lamp.rgb;
-//   const actualBright = await lamp.bright;
-//   console.log(actualRGB);
-//   await lamp.setBright(0);
-//   await sleep(2000);
-//   await lamp.setRGB([255, 0, 0]);
-//   await sleep(2000);
-//   await lamp.setBright(100);
-//   await sleep(2000);
-//   await lamp.setBright(0);
-//   await sleep(2000);
-//   await lamp.setRGB([0, 255, 0]);
-//   await sleep(2000);
-//   await lamp.setBright(100);
-//   await sleep(2000);
-//   await lamp.setBright(0);
-//   await sleep(2000);
-//   await lamp.setRGB([0, 0, 255]);
-//   await sleep(2000);
-//   await lamp.setBright(100);
+async function setTemperature(commandData, value) {
+  await lamp.setCT(value, 500)
+  client.say(commandData.target, `${commandData.username} setou a temperatura da cor para ${value}`);
+}
 
-//   await sleep(2000);
-//   await lamp.setBright(0);
+const acceptedCommands = {
+  red: setLampRed,
+  blue: setLampBlue,
+  green: setLampGreen,
+  color: setRGBColor,
+  flash: flashEffect,
+  temperature: setTemperature
+};
 
-//   await sleep(2000);
+// Called every time a message comes in
+async function onMessageHandler(target, context, msg, self) {
+  if (self) {
+    return;
+  } // Ignore messages from the bot
+  // console.log("Target", target)
+  // console.log("Context", context)
+  const commandName = msg.trim("");
+  // console.log("Command", commandName)
 
-//   await lamp.setRGB(actualRGB);
-//   await lamp.setBright(100);
-// }
+  const { command, attributes } = isCommand(commandName);
+
+  if (command || attributes) {
+    const commandData = {
+      target: target,
+      username: context.username,
+    };
+
+    console.log(
+      `Sender: [${commandData.username}] | Command: [${command}] | Attributes: [${attributes}]`
+    );
+    await acceptedCommands[command](commandData, ...attributes);
+  }
+}
+
