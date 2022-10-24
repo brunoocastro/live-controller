@@ -3,7 +3,7 @@ import client from "./bot.js";
 import getLight from "./light.js";
 config();
 
-function sleep(ms) {
+async function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
@@ -13,9 +13,9 @@ client.on("connected", onConnectedHandler);
 
 // Connect to Twitch:
 await client.connect();
-await sleep(3000);
+await sleep(8000);
 const lamp = getLight();
-lamp.setBright(100);
+// lamp.setBright(100);
 
 function isCommand(message) {
   const nada = "";
